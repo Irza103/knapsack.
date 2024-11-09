@@ -2,44 +2,29 @@ import random
 import items
 import matplotlib.pyplot as plt
 
-# INPUTS
-file_name = "items"  # write the input file's path if the main file and it are not in the same directory
+file_name = "items" 
 
-# carrier - limitation for weight
-carrier_limit = 25.0  # kg
+carrier_limit = 25.0  
 
-# genetic algorithm parameters
 population_size = 10
 generation_size = 100
 mutation_rate = 0.1
 
-# get items from a file and create Item objects using the file
 item_list = []
 with open(file_name, "r") as f:
-    for line in f:  # check each line
-        new_line = line.strip()  # remove spaces at the beginning and the end if they are available
-        new_line = new_line.split(" ")  # split a string into a list
-        # w --> weight | v --> value
-        id, w, v = new_line[0], new_line[1], new_line[2]  # check dataset file to see why id,w,v = 0,1,2
+    for line in f: 
+        new_line = line.strip() 
+        new_line = new_line.split(" ") 
+        id, w, v = new_line[0], new_line[1], new_line[2] 
         new_item = items.Item(int(id), float(w), float(v))
         item_list.append(new_item)
 
-
-# we have 8 items in the dataset
-# a random example solution in chromosome representation: 0 1 0 1 0 0 1 1
-# constraint --> total weight of the picked items should be equal or less than the "carrier_limit" value
-# objective --> getting the highest value
-
-
-# create a random solution without checking whether it is valid or not.
 def create_random_solution(i_list):
     solution = []
     for i in range(0, len(i_list)):
         solution.append(random.randint(0, 1))
     return solution
 
-
-# check the solution if it is valid according to the constraint.
 def valid_solution(i_list, s_list, limit):
     total_weight = 0
     for i in range(0, len(s_list)):
@@ -49,9 +34,6 @@ def valid_solution(i_list, s_list, limit):
             return False
     return True
 
-
-# calculate the total value of the picked items.
-# i_list --> item list | s_list --> solution as a list
 def calculate_value(i_list, s_list):
     total_value = 0
     for i in range(0, len(s_list)):
@@ -59,17 +41,13 @@ def calculate_value(i_list, s_list):
             total_value += i_list[i].value
     return total_value
 
-
-# check if two generated solutions are same.
-# for example --> 0 1 0 1 1 0 1 1 = 0 1 0 1 1 0 1 1
-def check_duplicate_solutions(s_1, s_2):  # two lists should be in same length
+def check_duplicate_solutions(s_1, s_2):  
     for i in range(0, len(s_1)):
         if s_1[i] != s_2[i]:
             return False
     return True
 
 
-# create initial population using item list, population size and w_limit = weight limit to carry
 def initial_population(pop_size, i_list, w_limit):
     population = []
     i = 0
@@ -80,8 +58,6 @@ def initial_population(pop_size, i_list, w_limit):
                 population.append(new_solution)
                 i += 1
             else:
-                # compare the new solution with existing solutions,
-                # if there is any same solution, then skip this solution and generate a new solution
                 skip = False
                 for j in range(0, len(population)):
                     if check_duplicate_solutions(new_solution, population[j]):
@@ -93,7 +69,6 @@ def initial_population(pop_size, i_list, w_limit):
     return population
 
 
-# pick random two solutions from the population and compare their value, select the better as winner.
 def tournament_selection(pop):
     ticket_1 = random.randint(0, len(pop) - 1)
     ticket_2 = random.randint(0, len(pop) - 1)
@@ -128,10 +103,6 @@ def mutation(chromosome):
     else:
         return mutation(chromosome)
 
-
-# using the existing generation, create a new generation
-# implement tournament selection and one point crossover operation to create a child solution
-# also implement mutation operation according to the mutation rate
 def create_generation(pop, mut_rate):
     new_gen = []
     for i in range(0, len(pop)):
@@ -145,8 +116,6 @@ def create_generation(pop, mut_rate):
         new_gen.append(child)
     return new_gen
 
-
-# find the value of the best solution of a generation according to the value
 def best_solution(generation, i_list):
     best = 0
     for i in range(0, len(generation)):
@@ -156,34 +125,25 @@ def best_solution(generation, i_list):
     return best
 
 
-value_list = []  # just for plot of the value of a solution from each generation
-
-
-# main genetic algorithm flow function
-# create an initial population
-# then generate new generations as much as gen_size
-# add the value of the best solution from each generation to a list
-# return the latest, best population as "pop" & value_list for plot
+value_list = []  
 def genetic_algorithm(c_limit, p_size, gen_size, mutation_rate, i_list):
     pop = initial_population(p_size, i_list, c_limit)
     for i in range(0, gen_size):
+        print("Generation ",i)
         pop = create_generation(pop, mutation_rate)
-        print(pop[0])
-
+        print("Current best solution -->",pop[0])
         print("value --> ", calculate_value(i_list, pop[0]))
+        print("----------------------------------------------------")
         value_list.append(best_solution(pop, i_list))
     return pop, value_list
 
-
-# latest population after genetic algorithm run
-latest_pop, v_list = genetic_algorithm(c_limit=carrier_limit,
+final_pop, final_list = genetic_algorithm(c_limit=carrier_limit,
                                        p_size=population_size,
                                        gen_size=generation_size,
                                        mutation_rate=mutation_rate,
                                        i_list=item_list)
 
-# Plot a graph to show the progress
-plt.plot(v_list)
+plt.plot(final_list)
 plt.xlabel('generations')
 plt.ylabel('values')
 plt.title("Values of the solutions during the generations")
