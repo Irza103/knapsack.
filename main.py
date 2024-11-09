@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 file_name = "items" 
 
-carrier_limit = 25.0  
+carrier_limit = 35.0  
 
 population_size = 10
 generation_size = 100
